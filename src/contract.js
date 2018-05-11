@@ -1,25 +1,91 @@
 'use strict'
-var Comment = function (messageId, commentId, sender, content) {
-  this.messageId = messageId
-  this.commentId = commentId
-  this.sender = sender
-  this.content = content
+
+var Comment = function (text) {
+  if (text) {
+    var o = JSON.parse(text);
+    this.messageId = o.messageId
+    this.sender = o.sender
+    this.content = o.content
+    this.commentId = o.commentId
+
+  } else {
+    this.messageId = 0
+    this.sender = ""
+    this.content = ""
+    this.commentId = 0
+  }
+};
+
+
+Comment.prototype = {
+  toString: function () {
+    return JSON.stringify(this);
+  }
+};
+
+var CommentMap = function (text) {
+  if (text) {
+    var o = JSON.parse(text);
+    this.data = o.data;
+  } else {
+    data = []
+  }
 }
 
-var CommentMap = function () {
-  this.data = []
+CommentMap.prototype = {
+  toString: function () {
+    return JSON.stringify(this);
+  }
 }
 
-var Message = function (messageId, sender, content) {
-  this.messageId = messageId
-  this.sender = sender
-  this.content = content
-}
+
+
+
+var Message = function (text) {
+  if (text) {
+    var o = JSON.parse(text);
+    this.messageId = o.messageId
+    this.sender = o.sender
+    this.content = o.content
+  } else {
+    this.messageId = 0
+    this.sender = ""
+    this.content = ""
+  }
+};
+
+Message.prototype = {
+  toString: function () {
+    return JSON.stringify(this);
+  }
+};
 
 var MessageBoardContract = function () {
-  LocalContractStorage.defineMapProperty(this, messages)
-  LocalContractStorage.defineMapProperty(this, comments)
-  LocalContractStorage.defineMapProperty(this, commentMap)
+  LocalContractStorage.defineMapProperty(this, "messages", {
+    parse: function (text) {
+      return new Message(text);
+    },
+    stringify: function (o) {
+      return o.toString();
+    }
+  })
+  LocalContractStorage.defineMapProperty(this, "comments", {
+    parse: function (text) {
+      return new Comment(text);
+    },
+    stringify: function (o) {
+      return o.toString();
+    }
+  })
+  LocalContractStorage.defineMapProperty(this, "commentMap", {
+    parse: function (text) {
+      return new CommentMap(text);
+    },
+    stringify: function (o) {
+      return o.toString();
+    }
+  })
+
   LocalContractStorage.defineProperties(this, {
     messageCount: null,
     commentCount: null
@@ -44,13 +110,17 @@ MessageBoardContract.prototype = {
   },
 
   addMessage: function (content) {
-    messageId = this.messageCount + 1
-    messageCount+=1
-    msg = new Message(messageId , Blockchain.transaction.from, content)
+    var messageId = this.messageCount + 1
+    this.messageCount+=1
+    msg = new Message()
+    msg.messageId = messageId
+    msg.sender =   Blockchain.transaction.from
+    meg.content =  content
     this.messages.put(messageId, msg);
     return messageId;
   }
 
 }
 
-module.exports = MessageBoardContractc
+module.exports = MessageBoardContract
+
