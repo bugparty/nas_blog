@@ -103,19 +103,16 @@ MessageBoardContract.prototype = {
   },
 
   getMessage: function (index) {
-    if (index > this.messageCount) {
-      throw new Error()
-    }
     return this.messages.get(index)
   },
 
   addMessage: function (content) {
     var messageId = this.messageCount + 1
     this.messageCount+=1
-    msg = new Message()
+    var msg = new Message()
     msg.messageId = messageId
     msg.sender =   Blockchain.transaction.from
-    meg.content =  content
+    msg.content =  content
     this.messages.put(messageId, msg);
     return messageId;
   }
