@@ -135,8 +135,7 @@ MessageBoardContract.prototype = {
   },
 
   addMessage: function (content) {
-    var messageId = this.messageCount + 1
-    this.messageCount += 1
+    var messageId = this.messageCount
     var msg = new Message()
     msg.messageId = messageId
     msg.sender = Blockchain.transaction.from
@@ -144,15 +143,15 @@ MessageBoardContract.prototype = {
     this.messages.put(messageId, msg)
     this.commentMap.put(messageId, new CommentMap())
     console.log('in addMessage ' + this.commentMap)
+    this.messageCount += 1
     return {'error': null,
       'message': msg,
       'comments': null}
   },
 
   addComment: function (messageId, content) {
-    this.commentCount += 1
     var commentId = this.commentCount
-    console.log('addComment commentId: '+ commentId)
+    console.log('addComment commentId: ' + commentId)
 
     var commentMapObj = this.commentMap.get(messageId)
     console.log('in addComment ' + JSON.stringify(this.commentMap))
@@ -165,6 +164,7 @@ MessageBoardContract.prototype = {
       console.log('commentMapObj:' + JSON.stringify(commentMapObj))
       commentMapObj.add(commentId)
     }
+    console.log("final commentMapObj " + JSON.stringify(commentMapObj))
     this.commentMap.put(messageId, commentMapObj)
 
     var comment = new Comment()
@@ -172,8 +172,9 @@ MessageBoardContract.prototype = {
     comment.sender = Blockchain.transaction.from
     comment.content = content
     comment.commentId = commentId
-    console.log('put comment id:'+ commentId + ' content: '+ JSON.stringify(comment))
+    console.log('put comment id:' + commentId + ' content: ' + JSON.stringify(comment))
     this.comments.put(commentId, comment)
+    this.commentCount += 1
     return commentId
   },
   getComments: function (messageId) {
@@ -184,7 +185,6 @@ MessageBoardContract.prototype = {
     for (var i = 0; i < commentMap.count(); i++) {
       var commentId = commentMap.get(i)
       console.log('comment id: ' + commentId)
-
       comments.push(this.comments.get(commentId))
     }
     return {
