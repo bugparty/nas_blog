@@ -96,16 +96,27 @@ var MessageBoardContract = function () {
 
   LocalContractStorage.defineProperties(this, {
     messageCount: null,
-    commentCount: null
+    commentCount: null,
+    owner: null
   })
 }
 
 MessageBoardContract.prototype = {
-  init: function () {
+  init: function (owner) {
     this.messageCount = 0
     this.commentCount = 0
+    this.owner = owner
   },
 
+  withdraw: function (amount) {
+    if (Blockchain.transaction.from == this.owner) {
+      var num = new BigNumber(amount)
+      var result = Blockchain.transfer(Blockchain.transaction.from, num)
+      return {'error': null, 'result': result}
+    } else {
+      return {'error': 'not owner', 'result': null}
+    }
+  },
   getMessageCount: function () {
     return this.messageCount
   },
@@ -164,7 +175,7 @@ MessageBoardContract.prototype = {
       console.log('commentMapObj:' + JSON.stringify(commentMapObj))
       commentMapObj.add(commentId)
     }
-    console.log("final commentMapObj " + JSON.stringify(commentMapObj))
+    console.log('final commentMapObj ' + JSON.stringify(commentMapObj))
     this.commentMap.put(messageId, commentMapObj)
 
     var comment = new Comment()
@@ -207,7 +218,8 @@ MessageBoardContract.prototype = {
     return {'d': JSON.stringify(this),
       'msgs': JSON.stringify(msgs),
       'comms': JSON.stringify(comms),
-      'maps': JSON.stringify(maps)
+      'maps': JSON.stringify(maps),
+      'owner': this.owner
     }
   }
 
