@@ -35,6 +35,15 @@ var CommentMap = function (text) {
 CommentMap.prototype = {
   toString: function () {
     return JSON.stringify(this);
+  },
+  add: function (commentId) {
+    this.data.push(commentId)
+  },
+  count: function () {
+    return this.data.length
+  },
+  getAll: function () {
+    return this.data
   }
 }
 
@@ -115,6 +124,32 @@ MessageBoardContract.prototype = {
     msg.content =  content
     this.messages.put(messageId, msg);
     return messageId;
+  },
+
+  addComment: function (messageId, content) {
+    var commentId = this.commentCount + 1
+    this.commentCount+=1
+    var commentMap = this.commentMap[messageId]
+    if (commentMap) {
+      commentMap.add(commentId)
+    } else {
+      commentMap = new CommentMap();
+      commentMap.add(commentId)
+    }
+    this.commentMap.put(messageId, commentMap);
+    
+    var comment = new Comment()
+    comment.messageId = messageId
+    comment.sender =   Blockchain.transaction.from
+    comment.content =  content
+    
+    this.comments.put(messageId, comment);
+    return commentId;
+  },
+  getComments: function (messageId) {
+    var commentMap = this.commentMap.get(messageId)
+    var comments = []
+    
   }
 
 }
