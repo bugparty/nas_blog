@@ -4,7 +4,7 @@ var replace = require('gulp-replace')
 var clipboard = require('gulp-clipboard')
 
 gulp.task('compress', function () {
-  gulp.src('src/contract.js')
+  gulp.src('contract/contract.js')
     .pipe(minify())
     .pipe(replace('"', '\\"'))
     .pipe(clipboard())
