@@ -40,6 +40,9 @@ CommentMap.prototype = {
   gets: function () {
     return this.data
   },
+  get: function (index) {
+    return this.data[index]
+  },
   add: function (commentId) {
     this.data.push(commentId)
     return { 'commentIds': this.data }
@@ -141,38 +144,48 @@ MessageBoardContract.prototype = {
     this.messages.put(messageId, msg)
     this.commentMap.put(messageId, new CommentMap())
     console.log('in addMessage ' + this.commentMap)
-    return messageId
+    return {'error': null,
+      'message': msg,
+      'comments': null}
   },
 
   addComment: function (messageId, content) {
-    var commentId = this.commentCount + 1
     this.commentCount += 1
-    var commentMap = this.commentMap[messageId]
-    console.log('in addComment ' + this.commentMap + ' ' + commentMap)
-    if (commentMap) {
+    var commentId = this.commentCount
+    console.log('addComment commentId: '+ commentId)
+
+    var commentMapObj = this.commentMap.get(messageId)
+    console.log('in addComment ' + JSON.stringify(this.commentMap))
+    if (commentMapObj) {
       console.log('commentMap is available')
-      commentMap.add(commentId)
+      commentMapObj.add(commentId)
     } else {
       console.log('commentMap is not available')
-      commentMap = new CommentMap()
-      commentMap.add(commentId)
-      this.commentMap.put(messageId, commentMap)
+      commentMapObj = new CommentMap()
+      console.log('commentMapObj:' + JSON.stringify(commentMapObj))
+      commentMapObj.add(commentId)
     }
-    this.commentMap.put(messageId, commentMap)
+    this.commentMap.put(messageId, commentMapObj)
 
     var comment = new Comment()
     comment.messageId = messageId
     comment.sender = Blockchain.transaction.from
     comment.content = content
-
+    comment.commentId = commentId
+    console.log('put comment id:'+ commentId + ' content: '+ JSON.stringify(comment))
     this.comments.put(commentId, comment)
     return commentId
   },
   getComments: function (messageId) {
     var commentMap = this.commentMap.get(messageId)
+    console.log('has ' + commentMap.count() + ' comments')
+
     var comments = []
     for (var i = 0; i < commentMap.count(); i++) {
-      comments.push(this.comments[commentMap.get(i)])
+      var commentId = commentMap.get(i)
+      console.log('comment id: ' + commentId)
+
+      comments.push(this.comments.get(commentId))
     }
     return {
       'error': null,
@@ -181,7 +194,21 @@ MessageBoardContract.prototype = {
     }
   },
   debug: function () {
-    return JSON.stringify(this)
+    var msgs = []
+    var maps = []
+    for (var i = 1; i <= this.messageCount; i++) {
+      msgs.push(this.messages.get(i))
+      maps.push(this.commentMap.get(i))
+    }
+    var comms = []
+    for (var j = 1; j <= this.commentCount; j++) {
+      comms.push(this.comments.get(j))
+    }
+    return {'d': JSON.stringify(this),
+      'msgs': JSON.stringify(msgs),
+      'comms': JSON.stringify(comms),
+      'maps': JSON.stringify(maps)
+    }
   }
 
 }
